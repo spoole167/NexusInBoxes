@@ -21,6 +21,7 @@ demo can be launched with no other changes
 Unless otherwise changed userid and passwords will be 
 
 admin / admin123 for Nexus and Lifecycle
+
 admin@admin.com / admin for PGAdmin
 
 
