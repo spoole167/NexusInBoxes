@@ -1,0 +1,1 @@
+https://download.sonatype.com/integrations/jenkins/nexus-jenkins-plugin-3.18.1-01.hpi

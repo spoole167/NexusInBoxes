@@ -1,0 +1,38 @@
+#
+# copy contents into a .env file in the root of this project
+#
+
+# Location of Licence Files
+# Licence Files
+
+LIFECYCLE_LICENCE_FILE=
+NEXUS_LICENCE_FILE=${LIFECYCLE_LICENCE_FILE}
+
+
+# Namespace for docker images
+DOCKER_PREFIX=nexusdemo
+
+# Postgres config for Lifecycle Postgres Database
+PG_LIFECYCLE_DB=lifecycle
+# next must match a docker service in the compose file
+PG_LIFECYCLE_HOST=db-lifecycle
+
+PG_LIFECYCLE_USER=lifecycle
+PG_LIFECYCLE_PASSWORD=lifecycle
+#
+# Postgres config for Nexus Postgres Database
+#
+PG_NEXUS_USER=nxrm
+PG_NEXUS_PASSWORD=nxrm
+
+PG_NEXUS_DB=nxrm
+# next must match the docker service in the compose file
+PG_NEXUS_HOST=db-nxrm
+PG_NEXUS_JDBC_URL=jdbc:postgresql://${PG_NEXUS_HOST}:5432/${PG_NEXUS_DB}
+
+#
+# PGAdmin config
+#
+PGADMIN_EMAIL=admin@admin.com
+PGADMIN_PASSWORD=admin
+

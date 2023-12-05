@@ -1,0 +1,114 @@
+services:
+
+  db-lifecycle:
+    image: postgres:12.16-bullseye
+    volumes:
+      - pgdata-lifecycle:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_LIFECYCLE_PASSWORD}
+      POSTGRES_USER    : ${PG_LIFECYCLE_USER}
+      POSTGRES_DB      : ${PG_LIFECYCLE_DB}
+    command: "-N 500"
+    networks:
+      - nexus
+    ports:
+      - "5060:5432"
+
+  db-nxrm:
+    image: postgres:12.16-bullseye
+    volumes:
+      - pgdata-nxrm:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_NEXUS_PASSWORD}
+      POSTGRES_USER    : ${PG_NEXUS_USER}
+      POSTGRES_DB      : ${PG_NEXUS_DB}
+    command: "-N 500"
+    networks:
+      - nexus
+    ports:
+      - "5070:5432"
+
+  pgadmin:
+    image: ${DOCKER_PREFIX}/pgadmin:latest
+    build: pgadmin
+    environment:
+
+      PGADMIN_DEFAULT_EMAIL   : ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      SERVER_COUNT            : 2
+      USER_1                  : ${PG_LIFECYCLE_USER}
+      PASSWORD_1              : ${PG_LIFECYCLE_PASSWORD}
+      DB_1                    : ${PG_LIFECYCLE_HOST}
+      USER_2                  : ${PG_NEXUS_USER}
+      PASSWORD_2              : ${PG_NEXUS_PASSWORD}
+      DB_2                    : ${PG_NEXUS_HOST}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db-lifecycle
+      - db-nxrm
+    networks:
+      - nexus
+    ports:
+      - "5050:80"
+
+  lifecycle:
+    image: ${DOCKER_PREFIX}/lifecycle:latest
+    build: lifecycle
+    networks:
+      - nexus
+    ports:
+      - "8070:8070"
+      - "8071:8071"
+    depends_on:
+      - db-lifecycle
+    secrets:
+      - lifecycle
+    environment:
+      DATABASE_USER    : ${PG_LIFECYCLE_USER}
+      DATABASE_PASSWORD: ${PG_LIFECYCLE_PASSWORD}
+      DATABASE_HOST    : ${PG_LIFECYCLE_HOST}
+      DATABASE_NAME    : ${PG_LIFECYCLE_DB}
+
+  nexus:
+    image: ${DOCKER_PREFIX}/nexus:latest
+    build: nexus
+    networks:
+      - nexus
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db-nxrm
+    secrets:
+      - nexus
+    environment:
+      NEXUS_LICENSE_FILE: /run/secrets/nexus
+      PG_NEXUS_PASSWORD : ${PG_NEXUS_PASSWORD}
+      PG_NEXUS_USER     : ${PG_NEXUS_USER}
+
+      NEXUS_DATASTORE_NEXUS_JDBCURL : ${PG_NEXUS_JDBC_URL}
+      NEXUS_DATASTORE_NEXUS_USERNAME: ${PG_NEXUS_USER}
+      NEXUS_DATASTORE_NEXUS_PASSWORD: ${PG_NEXUS_PASSWORD}
+      NEXUS_DATASTORE_ENABLE: true
+
+  jenkins:
+    image: ${DOCKER_PREFIX}/jenkins:latest
+    build: jenkins
+    depends_on:
+      - lifecycle
+    networks:
+      - nexus
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+secrets:
+  lifecycle:
+    file: ${LIFECYCLE_LICENCE_FILE}
+  nexus:
+    file: ${NEXUS_LICENCE_FILE}
+volumes:
+  pgdata-lifecycle:
+  pgdata-nxrm:
+  pgadmin-data:
+networks:
+  nexus:
